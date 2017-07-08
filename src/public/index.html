@@ -1,0 +1,40 @@
+<!doctype html>
+<html ng-app="conversionApp">
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="assets/css/styles.css">
+
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+    <script src="assets/js/conversion-list.js"></script>
+</head>
+<body>
+    <div class="container" ng-controller="ConversionListController as conversionList">
+        <div class="header clearfix">
+            <a class="btn btn-default pull-right" href="" ng-click="addItem('PDF')">New PDF Conversion</a>
+            <a class="btn btn-default pull-right" href="" ng-click="addItem('HTML')">New HTML Conversion</a>
+            <h2 class="text-muted">Conversions</h2>
+        </div>
+
+        <div class="content">
+            <table class="table table-hover" id="queue-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th style="width: 150px">Created At</th>
+                        <th style="width: 80px">Type</th>
+                        <th style="width: 120px">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="item in items">
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.createdAt | date:'EEE, MMM d, h:mm a' }}</td>
+                        <td><span class="label label-default">{{ item.type }}</span></td>
+                        <td><span class="glyphicon glyphicon-ok" aria-hidden="true"></span> {{ item.status }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

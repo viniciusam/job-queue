@@ -1,0 +1,31 @@
+
+body {
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+.header {
+    margin-bottom: 10px;
+}
+
+.header .btn {
+    margin-top: 18px;
+    margin-left: 10px;
+    background-color: #eeeeee;
+}
+
+.header .btn:hover {
+    background-color: #fefefe;
+}
+
+#queue-table thead {
+    border: 1px solid #cccccc;
+}
+
+#queue-table thead tr th {
+    border: none;
+}
+
+#queue-table tbody tr td {
+    border: none;
+}
