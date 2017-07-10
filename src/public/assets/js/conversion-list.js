@@ -1,7 +1,7 @@
 const app = angular.module('conversionApp', []);
 
 app.controller('ConversionListController', [ '$scope', 'conversionService', function ($scope, conversionService) {       
-    this.socket = io.connect('http://localhost:80');
+    this.socket = io.connect('http://localhost:3001');
     $scope.items = [];
     
     // Load initial data.

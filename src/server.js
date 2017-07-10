@@ -1,5 +1,7 @@
 const express = require('express');
 const app = express();
+const server = require('http').Server(app);
+const io = require('socket.io')(server);
 const path = require('path');
 const bodyParser = require('body-parser');
 
@@ -12,7 +14,7 @@ app.use('/conversion', require('./conversion/conversion.routing'));
 
 // Error handling middleware.
 app.use(function (err, req, res, next) {
-    console.log('error handler');
+    console.log(err.stack);
     res.status(err.status || 500).send(err);
 });
 

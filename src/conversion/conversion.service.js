@@ -14,10 +14,6 @@ function findAll() {
     });
 }
 
-function find({ id }) {
-
-}
-
 function addItem(item) {
     let validationErrors = new Array();
 
@@ -39,7 +35,7 @@ function addItem(item) {
             item.name = item.type + ' #' + item.id;
 
             itemList.push(item);
-            let jobId = queueService.createJob(item);
+            queueService.createJob(item);
 
             resolve(item);
         }
