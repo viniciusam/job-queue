@@ -1,8 +1,7 @@
 const app = angular.module('conversionApp', ['ngAnimate']);
 
-app.controller('ConversionListController', [ '$scope', '$timeout', 'conversionService', function ($scope, $timeout, conversionService) {
-    // TODO: This need to be configured dynamically with the server address.
-    this.socket = io.connect('http://localhost:3000');
+app.controller('ConversionListController', [ '$scope', '$location', '$timeout', 'conversionService', function ($scope, $location, $timeout, conversionService) {
+    this.socket = io.connect($location.protocol() + '://' + $location.host() + ':' + $location.port());
 
     $scope.items = [];
     $scope.notifications = [];
