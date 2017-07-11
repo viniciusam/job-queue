@@ -1,48 +1,45 @@
-const queueService = require('./queue.service');
+const assert = require('assert');
 
-let itemList = new Array();
+module.exports = function ({ queueService }) {
+    assert(queueService, 'queueService is required');
 
-function findAll() {
-    return new Promise(function (resolve, reject) {
-        resolve(itemList);
-        // resolve([
-        //     { name: 'PDF #1', createdAt: new Date(), type: 'PDF', status: 1 },
-        //     { name: 'HTML #1', createdAt: new Date(), type: 'HTML', status: 3 },
-        //     { name: 'PDF #2', createdAt: new Date(), type: 'PDF', status: 4 },
-        //     { name: 'HTML #2', createdAt: new Date(), type: 'HTML', status: 2 }
-        // ]);
-    });
-}
-
-function addItem(item) {
-    let validationErrors = new Array();
-
-    if (!item.type || !(item.type === 'PDF' || item.type === 'HTML')) {
-        validationErrors.push('Invalid item type: ' + item.type);
+    /**
+     * Returns all jobs in the Queue.
+     */  
+    function findAll() {
+        return new Promise(function (resolve, reject) {
+            let jobs = queueService.getJobList();
+            resolve(jobs);
+        });
     }
 
-    return new Promise(function (resolve, reject) {
-        if (validationErrors.length > 0) {
-            reject({
-                msg: 'Validation Error',
-                status: 400,
-                errors: validationErrors
-            });
-        } else {
-            item.id = itemList.length + 1;
-            item.createdAt = new Date();
-            item.status = 'In Queue';
-            item.name = item.type + ' #' + item.id;
+    /**
+     * Adds a new job to the Queue.
+     * @param {*} jobData 
+     */
+    function addJob(jobData) {
+        return new Promise(function (resolve, reject) {
+            let errorList = new Array();
 
-            itemList.push(item);
-            queueService.createJob(item);
+            if (!jobData.type || !(jobData.type === 'PDF' || jobData.type === 'HTML')) {
+                errorList.push('Invalid job type: ' + jobData.type);
+            }
 
-            resolve(item);
-        }
-    });
-}
+            if (errorList.length > 0) {
+                reject({
+                    msg: 'Validation Error',
+                    status: 400,
+                    errors: errorList
+                });
+            } else {
+                let job = queueService.createJob(jobData);
+                resolve(job);
+            }
+        });
+    }
 
-module.exports = {
-    findAll,
-    addItem
+    return {
+        findAll,
+        addJob
+    }
 }

@@ -1,144 +1,170 @@
-const EventEmitter = require('events');
-const io = require('socket.io')(3001);
+module.exports = function(socket) {
+    const EventEmitter = require('events');
 
-class Queue extends EventEmitter {}
-const queue = new Queue();
+    class Queue extends EventEmitter {}
+    const queue = new Queue();
 
-const JOB_CREATED = 'job_created';
-const JOB_STARTED = 'job_started';
-const JOB_DONE    = 'job_done';
+    const JOB_CREATED = 'job_created';
+    const JOB_STARTED = 'job_started';
+    const JOB_DONE    = 'job_done';
 
-let jobs = [];
-let processed = [];
-let processing = false;
+    const STATUS_IN_QUEUE = 'In Queue';
+    const STATUS_PROCESSING = 'Processing';
+    const STATUS_PROCESSED = 'Processed';
 
-/**
- * Creates a new job.
- * @param {*} item 
- */
-function createJob(item) {
-    let job = {
-        id: (jobs.length + processed.length) + 1,
-        priority: (item.type === 'HTML') ? 'high' : 'low',
-        data: item
-    };
+    let jobs = [];
+    let processing = false;
 
-    addOrdered(job);
-    queue.emit(JOB_CREATED, job);
-}
+    /**
+     * Creates a new job.
+     * @param {*} item 
+     */
+    function createJob(jobData) {
+        let newId = jobs.length + 1;
+        let job = {
+            id: newId,
+            priority: (jobData.type === 'HTML') ? 'high' : 'low',
+            createdAt: new Date(),
+            status: STATUS_IN_QUEUE,
+            type: jobData.type,
+            name: jobData.type + ' #' + newId
+        };
 
-/**
- * Notify the socket that a new job was created.
- * If it is not processing anything, start it.
- */
-queue.on(JOB_CREATED, (job) => {
-    io.emit(JOB_CREATED, job);
-    log('Job Created: ', job);
-    if (!processing)
-        processNextJob();
-});
-
-/**
- * Notify the socket that a job was started to be processed.
- */
-queue.on(JOB_STARTED, (job) => {
-    processing = true;
-    io.emit(JOB_STARTED, job);
-    log('Job Started: ', job);
-});
-
-/**
- * Notify the socket that a job was done.
- */
-queue.on(JOB_DONE, (job) => {
-    processing = false;
-    io.emit(JOB_DONE, job);
-    log('Job Done: ', job);
-    processNextJob();
-});
-
-/**
- * Add new jobs at the order to be executed, considering its priority and age.
- * It adds higher priority tasks at front, unless the existing jobs age passed half of its timeout.
- * @param {*} job 
- */
-function addOrdered(job) {
-    if (jobs.length === 0) {
         jobs.push(job);
-        return;
+        queue.emit(JOB_CREATED, job);
+        
+        return job;
     }
 
-    let newJobPriority = getPriorityValue(job.priority);
-    let insertIndex = jobs.findIndex((queuedJob) => {
-        let queuedJobPriority = getPriorityValue(queuedJob.priority);
-        let queuedJobAge = new Date() - queuedJob.data.createdAt;
+    /**
+     * Get all jobs on the queue.
+     */
+    function getJobList() {
+        return jobs;
+    }
 
-        if (queuedJobAge > (getJobTimeout(queuedJob) / 2)) {
-            return true;
-        } else {
-            return queuedJobPriority < newJobPriority;
-        }
+    /**
+     * Notify the socket that a new job was created.
+     * If it is not processing anything, start it.
+     */
+    queue.on(JOB_CREATED, (job) => {
+        notifySocket(JOB_CREATED, job);
+        log('Job Created: ', job);
+        if (!processing)
+            processNextJob();
     });
 
-    if (insertIndex === -1) {
-        jobs.push(job);
-    } else {
-        jobs.splice(insertIndex, 0, job);
+    /**
+     * Notify the socket that a job was started to be processed.
+     */
+    queue.on(JOB_STARTED, (job) => {
+        processing = true;
+        notifySocket(JOB_STARTED, job);
+        log('Job Started: ', job);
+    });
+
+    /**
+     * Notify the socket that a job was done.
+     */
+    queue.on(JOB_DONE, (job) => {
+        processing = false;
+        notifySocket(JOB_DONE, job);
+        log('Job Done: ', job);
+        processNextJob();
+    });
+
+    /**
+     * Process the next job on the queue.
+     */
+    function processNextJob() { 
+        // Retrieve the new job from queue.
+        let job = getNextJob();
+        if (job === false)
+            return;
+
+        // Change the job status and notify.
+        job.status = STATUS_PROCESSING;
+        queue.emit(JOB_STARTED, job);
+        
+        // Change the job status and notify, after the artificial timeout expires.
+        let timeout = getJobTimeout(job);
+        setTimeout(() => {
+            job.status = STATUS_PROCESSED;
+            queue.emit(JOB_DONE, job);
+        }, timeout);
     }
-}
 
-/**
- * Process the next job on the queue.
- */
-function processNextJob() {
-    if (jobs.length === 0)
-        return;
-   
-    // Retrieve the new job from queue and add to processed job list.
-    let job = jobs[0];
-    jobs.splice(0, 1);
-    processed.push(job);
+    /**
+     * Return jobs at the order to be executed, considering its priority and age.
+     * It adds higher priority tasks at front, unless the existing jobs age passed half of its timeout.
+     * @param {*} job 
+     */
+    function getNextJob() {       
+        let prevJobAge = -1;
+        let prevJobPriority = -1;
+        let nextJob;
 
-    // Change the job status and notify.
-    job.data.status = 'Processing';
-    queue.emit(JOB_STARTED, job);
-    
-    // Change the job status and notify, after the artificial timeout expires.
-    let timeout = getJobTimeout(job);
-    setTimeout(() => {
-        job.data.status = 'Processed';
-        queue.emit(JOB_DONE, job);
-    }, timeout);
-}
+        for (job of jobs) {
+            if (job.status !== STATUS_IN_QUEUE)
+                continue;
+            
+            // If the job already passed half of its timeout, select it.
+            let jobAge = new Date() - job.createdAt;
+            if (jobAge > getJobTimeout(job) / 2) {
+                nextJob = job;
+                break;
+            }
 
-/**
- * Get the artificial timeout value to mark the job as done.
- * @param {*} job 
- */
-function getJobTimeout(job) {
-    if (job.data.type === 'PDF')
-        return 100 * 1000;
-    if (job.data.type === 'HTML')
-        return 10 * 1000;
-}
+            // Or select the job with the greater priority and age.
+            let jobPriority = getPriorityValue(job.priority);
+            if (jobPriority >= prevJobPriority && jobAge > prevJobAge) {
+                nextJob = job;
+            }
 
-/**
- * Get the job priority number.
- * @param {*} priority 
- */
-function getPriorityValue(priority) {
-    if (priority === 'high')
-        return 3;
-    if (priority === 'normal')
-        return 2;
-    if (priority === 'low')
-        return 1;
-}
+            prevJobAge = jobAge;
+            prevJobPriority = jobPriority;
+        };
 
-function log(msg, job) {
-    console.log(msg + '#' + job.id + ' - ' + job.data.type + ' - ' + (new Date().toLocaleTimeString())); 
-}
+        return nextJob || false;
+    }
 
-module.exports = {
-    createJob
+    /**
+     * Get the artificial timeout value to mark the job as done.
+     * @param {*} job 
+     */
+    function getJobTimeout(job) {
+        if (job.type === 'PDF')
+            return 100 * 1000;
+        if (job.type === 'HTML')
+            return 10 * 1000;
+    }
+
+    /**
+     * Get the job priority number.
+     * @param {*} priority 
+     */
+    function getPriorityValue(priority) {
+        if (priority === 'high')
+            return 3;
+        if (priority === 'normal')
+            return 2;
+        if (priority === 'low')
+            return 1;
+    }
+
+    function notifySocket(event, data) {
+        if (typeof socket !== 'undefined') {
+            socket.emit(event, data);
+        }
+    }
+
+    function log(msg, job) {
+        console.log(msg + '#' + job.id + ' - ' + job.type + ' - ' + (new Date().toLocaleTimeString())); 
+    }
+
+    return {
+        createJob,
+        getJobList
+    }
+
 }

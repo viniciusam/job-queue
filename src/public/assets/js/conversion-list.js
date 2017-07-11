@@ -1,7 +1,7 @@
 const app = angular.module('conversionApp', []);
 
 app.controller('ConversionListController', [ '$scope', 'conversionService', function ($scope, conversionService) {       
-    this.socket = io.connect('http://localhost:3001');
+    this.socket = io.connect('http://localhost:3000');
     $scope.items = [];
     
     // Load initial data.
@@ -25,13 +25,13 @@ app.controller('ConversionListController', [ '$scope', 'conversionService', func
 
     // Watch for queue status updates.
     this.socket.on('job_created', function (job) {
-        $scope.items.push(job.data);
+        $scope.items.push(job);
     });
     this.socket.on('job_started', function (job) {
-        editItem(job.data);
+        editItem(job);
     });
     this.socket.on('job_done', function (job) {
-        editItem(job.data);
+        editItem(job);
     });
 }]);
 

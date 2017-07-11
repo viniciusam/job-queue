@@ -1,17 +1,22 @@
-const express = require('express');
-const router = express.Router();
-const service = require('./conversion.service');
+const assert = require('assert');
 
-router.get('/', function (req, res, next) {
-    service.findAll()
-        .then(items => res.send(items))
-        .catch(error => next(error));
-});
+module.exports = function({ conversionService }) {
+    assert(conversionService, 'conversionService is required');
 
-router.post('/', function (req, res, next) {
-    service.addItem(req.body)
-        .then(response => res.send(response))
-        .catch(error => next(error));
-});
+    const express = require('express');
+    const router = express.Router();
 
-module.exports = router;
+    router.get('/', function (req, res, next) {
+        conversionService.findAll()
+            .then(jobs => res.send(jobs))
+            .catch(error => next(error));
+    });
+
+    router.post('/', function (req, res, next) {
+        conversionService.addJob(req.body)
+            .then(job => res.send(job))
+            .catch(error => next(error));
+    });
+
+    return router;
+}

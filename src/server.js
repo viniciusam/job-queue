@@ -8,9 +8,16 @@ const bodyParser = require('body-parser');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Creates a new conversion service, using the server's socket.
+const conversionService = require('./conversion/conversion.service')({
+    queueService: require('./conversion/queue.service')(io),
+});
+
 // Routing configuration.
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/conversion', require('./conversion/conversion.routing'));
+app.use('/conversion', require('./conversion/conversion.routing')({
+    conversionService: conversionService
+}));
 
 // Error handling middleware.
 app.use(function (err, req, res, next) {
@@ -18,6 +25,6 @@ app.use(function (err, req, res, next) {
     res.status(err.status || 500).send(err);
 });
 
-app.listen(3000, function() {
+server.listen(3000, null, null, function() {
     console.log('Listening on port 3000!');
 });
