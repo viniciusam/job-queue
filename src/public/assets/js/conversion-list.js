@@ -1,8 +1,11 @@
-const app = angular.module('conversionApp', []);
+const app = angular.module('conversionApp', ['ngAnimate']);
 
-app.controller('ConversionListController', [ '$scope', 'conversionService', function ($scope, conversionService) {       
+app.controller('ConversionListController', [ '$scope', '$timeout', 'conversionService', function ($scope, $timeout, conversionService) {
+    // TODO: This need to be configured dynamically with the server address.
     this.socket = io.connect('http://localhost:3000');
+
     $scope.items = [];
+    $scope.notifications = [];
     
     // Load initial data.
     conversionService.findAllItems()
@@ -15,6 +18,28 @@ app.controller('ConversionListController', [ '$scope', 'conversionService', func
             .catch(err => console.log(err.data));
     }
 
+    $scope.getJobTypeClass = function (job) {
+        switch (job.status) {
+            case 'In Queue': return 'glyphicon-time';
+            case 'Processing': return 'glyphicon-refresh';
+            case 'Processed': return 'glyphicon-ok';
+        }
+    }
+
+    $scope.getNotificationTypeClass = function (notification) {
+        switch (notification.job.status) {
+            case 'Processing': return 'alert-info';
+            case 'Processed': return 'alert-success';
+        }
+    }
+
+    $scope.getNotificationIconClass = function (notification) {
+        switch (notification.job.status) {
+            case 'Processing': return 'glyphicon-info-sign';
+            case 'Processed': return 'glyphicon-ok-sign';
+        }
+    }
+
     function editItem(item) {
         let idx = $scope.items.findIndex((el) => el.id === item.id);
         if (idx >= 0) {
@@ -23,15 +48,28 @@ app.controller('ConversionListController', [ '$scope', 'conversionService', func
         }
     }
 
+    function removeNotification() {
+        let msg = $scope.notifications.pop();
+        $scope.$apply();
+    }
+
+    function addNotification(job, msg) {
+        $scope.notifications.splice(0, 0, { job, msg });
+        $scope.$apply();
+        $timeout(removeNotification, 5000);
+    }
+
     // Watch for queue status updates.
     this.socket.on('job_created', function (job) {
         $scope.items.push(job);
     });
     this.socket.on('job_started', function (job) {
         editItem(job);
+        addNotification(job, 'Request "' + job.name + '" started processing.');
     });
     this.socket.on('job_done', function (job) {
         editItem(job);
+        addNotification(job, 'Request "' + job.name + '" processed.');
     });
 }]);
 
@@ -46,10 +84,3 @@ app.factory('conversionService', [ '$http', function ($http) {
         }
     }
 }]);
-
-app.component('alert', {
-    template: '<div class="alert alert-info" role="alert">{{ $scope.text }}</div>',
-    bindings: {
-        text: '<'
-    }
-});
