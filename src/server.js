@@ -14,7 +14,7 @@ const conversionService = require('./conversion/conversion.service')({
 });
 
 // Routing configuration.
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.resolve(__dirname, '../build/public')));
 app.use('/conversion', require('./conversion/conversion.routing')({
     conversionService: conversionService
 }));

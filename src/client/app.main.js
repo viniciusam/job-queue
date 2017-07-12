@@ -1,4 +1,4 @@
-const app = angular.module('conversionApp', ['ngAnimate']);
+const app = require('./app.module');
 
 app.controller('ConversionListController', [ '$scope', '$location', '$timeout', 'conversionService', function ($scope, $location, $timeout, conversionService) {
     this.socket = io.connect($location.protocol() + '://' + $location.host() + ':' + $location.port());

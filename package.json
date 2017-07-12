@@ -4,20 +4,30 @@
   "description": "",
   "main": "src/server.js",
   "scripts": {
-    "start": "nodemon src/server.js",
+    "start": "gulp clean && gulp serve",
     "test": "mocha src/**/*.spec.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "angular": "^1.6.5",
+    "angular-animate": "^1.6.5",
     "body-parser": "^1.17.2",
+    "bootstrap": "^3.3.7",
     "express": "^4.15.3",
     "socket.io": "^2.0.3"
   },
   "devDependencies": {
+    "browserify": "^14.4.0",
     "chai": "^4.0.2",
     "chai-as-promised": "^7.1.1",
+    "gulp": "^3.9.1",
+    "gulp-browserify": "^0.5.1",
+    "gulp-clean": "^0.3.2",
+    "gulp-concat": "^2.6.1",
+    "gulp-nodemon": "^2.2.1",
     "mocha": "^3.4.2",
-    "nodemon": "^1.11.0"
+    "nodemon": "^1.11.0",
+    "vinyl-source-stream": "^1.1.0"
   }
 }
