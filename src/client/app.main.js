@@ -19,9 +19,9 @@ app.controller('ConversionListController', [ '$scope', '$location', '$timeout', 
 
     $scope.getJobTypeClass = function (job) {
         switch (job.status) {
-            case 'In Queue': return 'glyphicon-time';
-            case 'Processing': return 'glyphicon-refresh';
-            case 'Processed': return 'glyphicon-ok';
+            case 'In Queue': return 'fa fa-clock-o';
+            case 'Processing': return 'fa fa-refresh fa-spin';
+            case 'Processed': return 'fa fa-check';
         }
     }
 
@@ -34,8 +34,8 @@ app.controller('ConversionListController', [ '$scope', '$location', '$timeout', 
 
     $scope.getNotificationIconClass = function (notification) {
         switch (notification.job.status) {
-            case 'Processing': return 'glyphicon-info-sign';
-            case 'Processed': return 'glyphicon-ok-sign';
+            case 'Processing': return 'fa fa-info fa-lg';
+            case 'Processed': return 'fa fa-check fa-lg';
         }
     }
 

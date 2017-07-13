@@ -41,7 +41,10 @@ body {
     margin-bottom: 10px;
 }
 
-.notification .glyphicon {
+.notification .icon-box {
+    text-align: center;
+    display: inline-block;
+    width: 20px;
     margin-right: 5px;
 }
 
