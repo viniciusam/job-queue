@@ -6,10 +6,6 @@ appModule.controller('ConversionListController', [ '$scope', '$location', '$time
     $scope.items = [];
     $scope.notifications = [];
     
-    // Load initial data.
-    conversionService.findAllItems()
-        .then(res => $scope.items = res.data);
-    
     // Adds a new item to the queue.
     $scope.addItem = function (type) {
         let newItem = { type: type };
@@ -58,7 +54,12 @@ appModule.controller('ConversionListController', [ '$scope', '$location', '$time
         $timeout(removeNotification, 5000);
     }
 
-    // Watch for queue status updates.
+    // Reload server data upon socket connection.
+    this.socket.on('connect', function () {
+        conversionService.findAllItems()
+            .then(res => $scope.items = res.data);
+    });
+    // Job status updates.
     this.socket.on('job_created', function (job) {
         $scope.items.push(job);
     });
