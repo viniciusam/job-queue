@@ -1,4 +1,6 @@
-This is a simple job queue app, implemented using Node.js and AngularJS.
+This is a fake in-memory job queue, implemented using Node.js and AngularJS.
+
+<p align="center"><img src="job-queue.gif"></img></p>
 
 ### Running It
 ```
@@ -6,9 +8,9 @@ This is a simple job queue app, implemented using Node.js and AngularJS.
     npm start
 ```
 
-It will create a web server that listens on port 3000. You can acces it on:
+It will create a web server that listens on port 3000. You can access it on:
 ```
 http://localhost:3000
 ```
 
-The npm start command uses a tool called nodemon, that reloads the server every time a file is changed. This is useful for development purposes.
+The server watches for file changes and use gulp to build the client assets.
