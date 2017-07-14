@@ -1,2 +1,5 @@
-const app = angular.module('conversionApp', ['ngAnimate']);
-module.exports = app;
+const appModule = angular.module('conversionApp', ['ngAnimate']);
+module.exports = appModule;
+
+require('./app.controller');
+require('./app.service');
