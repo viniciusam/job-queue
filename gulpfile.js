@@ -44,8 +44,8 @@ gulp.task('bundle-client-vendor', () => {
             'node_modules/angular-animate/angular-animate.js',
             'node_modules/socket.io-client/dist/socket.io.js'
         ])
-            .pipe(uglify())
             .pipe(concat('vendor.bundle.js'))
+            .pipe(uglify())
             .pipe(gulp.dest(CLIENT_OUTPUT)),
         gulp.src([
             'node_modules/bootstrap/dist/css/bootstrap.css',
@@ -54,8 +54,8 @@ gulp.task('bundle-client-vendor', () => {
             // Saving the css to same folder, so we can use a
             // commom base path to rebase the assets.
             .pipe(gulp.dest(BUILD_TEMP + '/css'))
-            .pipe(cleanCSS({ rebaseTo: BUILD_TEMP }))
             .pipe(concat('vendor.bundle.css'))
+            .pipe(cleanCSS({ rebaseTo: BUILD_TEMP }))
             .pipe(gulp.dest(CLIENT_OUTPUT)),
         gulp.src('node_modules/font-awesome/fonts/*')
             .pipe(gulp.dest(CLIENT_OUTPUT + '/fonts'))
@@ -72,8 +72,8 @@ gulp.task('bundle-client-main', () => {
             .pipe(uglify())
             .pipe(gulp.dest(CLIENT_OUTPUT)),
         gulp.src('src/client/*.css')
-            .pipe(cleanCSS())
             .pipe(concat('main.bundle.css'))
+            .pipe(cleanCSS())
             .pipe(gulp.dest(CLIENT_OUTPUT)),
         gulp.src('src/client/*.html')
             .pipe(gulp.dest(CLIENT_OUTPUT))
@@ -82,11 +82,11 @@ gulp.task('bundle-client-main', () => {
 
 gulp.task('build-client', ['bundle-client-vendor', 'bundle-client-main']);
 
-gulp.task('watch', ['build-client'], () => {
+gulp.task('watch-client', () => {
     gulp.watch('src/client/**/*.*', ['build-client']);
 });
 
-gulp.task('serve', ['watch'], () => {
+gulp.task('serve', ['build-client', 'watch-client'], () => {
     nodemon({
         nodemon: require('nodemon'),
         script: 'src/server.js',
